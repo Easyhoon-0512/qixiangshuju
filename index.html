@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>广州天河区未来30天气象监测大屏</title>
+  <title>广州天河区未来30天气象监测分析大屏</title>
   <link rel="stylesheet" href="css/dashboard.css" />
   <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 </head>
 <body class="scanlines grid-bg">
 <div id="refreshFlash"></div>
+
+<!-- 加载遮罩 -->
+<div id="loadingOverlay" style="position:fixed;inset:0;z-index:9999;background:rgba(3,20,40,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#35d9ff;font-size:18px;">
+  <div style="font-size:28px;margin-bottom:16px;">🌤 正在加载实时气象数据...</div>
+  <div id="loadingStatus" style="color:#7ec8e3;font-size:14px;">连接 Open-Meteo API</div>
+</div>
 
 <div class="dashboard">
 
@@ -16,17 +22,17 @@
   <div class="header">
     <div class="meta-left">
       监测区域：广州天河区<br>
-      <span id="dataTime">2026-05-29 15:40:22</span>
+      <span id="dataTime">加载中...</span>
     </div>
     <div class="title-wrap">
       <div class="title">广州天河区未来30天气象监测分析大屏</div>
-      <div class="subtitle">Forecast + Trend Inference / 气温 · 降水 · 风场 · 湿度 · 风险预警</div>
+      <div class="subtitle">Real-time Forecast + Trend Inference / 气温 · 降水 · 风场 · 湿度 · 风险预警</div>
     </div>
     <div class="meta-right">
       数据源：Open-Meteo<br>
       <div id="countdownBadge">
         <span class="cd-dot"></span>
-        距离下次更新：<span id="cdSeconds">60s</span>
+        距离下次更新：<span id="cdSeconds">300s</span>
       </div>
     </div>
   </div>
@@ -35,41 +41,41 @@
 
     <!-- KPI 行 -->
     <div class="kpis">
-      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">30天平均最高温</div><div class="kpi-value" id="kpi-avgmax">31.1<span class="kpi-unit">℃</span></div></div>
-      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">30天平均最低温</div><div class="kpi-value" id="kpi-avgmin">24.8<span class="kpi-unit">℃</span></div></div>
-      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">累计降水量</div><div class="kpi-value" id="kpi-rain">386.9<span class="kpi-unit">mm</span></div></div>
-      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">极端最高温</div><div class="kpi-value" id="kpi-maxtemp">35.0<span class="kpi-unit">℃</span></div></div>
-      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">极端最低温</div><div class="kpi-value" id="kpi-mintemp">23.0<span class="kpi-unit">℃</span></div></div>
-      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">高风险天气日</div><div class="kpi-value" id="kpi-risk">25<span class="kpi-unit">天</span></div></div>
-      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">高温体感日</div><div class="kpi-value" id="kpi-heat">12<span class="kpi-unit">天</span></div></div>
+      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">30天平均最高温</div><div class="kpi-value" id="kpi-avgmax">--<span class="kpi-unit">℃</span></div></div>
+      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">30天平均最低温</div><div class="kpi-value" id="kpi-avgmin">--<span class="kpi-unit">℃</span></div></div>
+      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">累计降水量</div><div class="kpi-value" id="kpi-rain">--<span class="kpi-unit">mm</span></div></div>
+      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">极端最高温</div><div class="kpi-value" id="kpi-maxtemp">--<span class="kpi-unit">℃</span></div></div>
+      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">极端最低温</div><div class="kpi-value" id="kpi-mintemp">--<span class="kpi-unit">℃</span></div></div>
+      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">高风险天气日</div><div class="kpi-value" id="kpi-risk">--<span class="kpi-unit">天</span></div></div>
+      <div class="panel kpi"><div class="kpi-trace"></div><div class="kpi-label">高温体感日</div><div class="kpi-value" id="kpi-heat">--<span class="kpi-unit">天</span></div></div>
     </div>
 
     <!-- 综合态势总览 -->
     <div class="panel left-top">
       <div class="panel-title">综合态势总览</div>
-      <div class="panel-subtitle">今日监测 + 月度结论</div>
+      <div class="panel-subtitle">今日实时监测 + 月度结论</div>
       <div class="overview">
         <div class="hero">
-          <div class="hero-city" id="heroCity">广州 · 天河区 ⛈</div>
-          <div class="hero-desc">今日天气：雷暴｜适用于企业园区、工地、物流、巡检监测</div>
+          <div class="hero-city" id="heroCity">广州 · 天河区</div>
+          <div class="hero-desc" id="heroDesc">今日天气：加载中...</div>
           <div class="hero-big">
-            <div class="hero-temp" id="heroTemp">35.0</div>
-            <div class="hero-range" id="heroRange">/ 43.3℃</div>
+            <div class="hero-temp" id="heroTemp">--</div>
+            <div class="hero-range" id="heroRange">/ --℃</div>
           </div>
           <div class="hero-tags">
-            <span class="tag">体感峰值 <span id="heroFeel">43.3</span>℃</span>
-            <span class="tag">降雨概率 <span id="heroProb">84</span>%</span>
-            <span class="tag">风速峰值 <span id="heroWind">11.8</span> km/h</span>
-            <span class="tag">UV <span id="heroUv">8.5</span></span>
-            <span class="tag">日出 <span id="heroSunrise">05:40</span></span>
-            <span class="tag">日落 <span id="heroSunset">19:06</span></span>
+            <span class="tag">体感峰值 <span id="heroFeel">--</span>℃</span>
+            <span class="tag">降雨概率 <span id="heroProb">--</span>%</span>
+            <span class="tag">风速峰值 <span id="heroWind">--</span> km/h</span>
+            <span class="tag">UV <span id="heroUv">--</span></span>
+            <span class="tag">日出 <span id="heroSunrise">--:--</span></span>
+            <span class="tag">日落 <span id="heroSunset">--:--</span></span>
           </div>
         </div>
         <div class="conclusion">
-          <div class="con-box"><div class="con-title">最强单日降雨</div><div class="con-text">39.0 mm</div></div>
-          <div class="con-box"><div class="con-title">最大阵风</div><div class="con-text">19.4 km/h</div></div>
-          <div class="con-box"><div class="con-title">预报期天数</div><div class="con-text">16 天</div></div>
-          <div class="con-box"><div class="con-title">趋势研判天数</div><div class="con-text">14 天</div></div>
+          <div class="con-box"><div class="con-title">最强单日降雨</div><div class="con-text" id="conMaxRain">-- mm</div></div>
+          <div class="con-box"><div class="con-title">最大阵风</div><div class="con-text" id="conMaxWind">-- km/h</div></div>
+          <div class="con-box"><div class="con-title">历史天数</div><div class="con-text" id="conHistDays">14 天</div></div>
+          <div class="con-box"><div class="con-title">预报天数</div><div class="con-text" id="conFcDays">16 天</div></div>
         </div>
       </div>
     </div>
@@ -77,15 +83,15 @@
     <!-- 30天气温降水趋势 -->
     <div class="panel center-top">
       <div class="panel-title">未来30天气温与降水主趋势</div>
-      <div class="panel-subtitle">最高/最低/体感/降水量</div>
+      <div class="panel-subtitle">历史14天 + 预报16天 / 最高温·最低温·体感峰值·降水量</div>
       <div id="trendChart" class="chart"></div>
-      <div class="legend-note">前16天为预报数据，后14天为趋势研判数据</div>
+      <div class="legend-note">左侧14天为历史数据，右侧16天为预报数据</div>
     </div>
 
     <!-- 风险预警滚动 -->
     <div class="panel right-top">
       <div class="panel-title">重点天气风险预警</div>
-      <div class="panel-subtitle">高温 / 强降水 / 大风</div>
+      <div class="panel-subtitle">高温 / 强降水 / 大风 / 雷暴</div>
       <div class="alert-fade-top"></div>
       <div class="alert-panel-inner">
         <div id="alertTrack" class="alert-track"></div>
@@ -115,152 +121,547 @@
     <!-- 决策建议 -->
     <div class="panel right-bottom">
       <div class="panel-title">监测决策建议</div>
-      <div class="panel-subtitle">适配企业气象运营场景</div>
+      <div class="panel-subtitle">实时数据驱动的运营建议</div>
       <div id="adviceChart" class="chart"></div>
     </div>
-  </div><!-- /content -->
+  </div>
 
   <div class="footnote">
-    <div>说明：本大屏用于可视化展示与趋势分析；后14天为基于近段天气结构的趋势研判，适合企业排班、巡检、施工和物流调度参考。</div>
-    <div>Made with ECharts · 炫酷企业大屏风格</div>
+    <div>说明：本大屏实时对接 Open-Meteo 免费气象 API，数据每5分钟自动刷新；左侧14天为历史数据，右侧16天为预报数据。</div>
+    <div>Made with ECharts · 实时气象数据大屏 · 数据源 Open-Meteo</div>
   </div>
-</div><!-- /dashboard -->
+</div>
 
 <script src="js/dashboard.js"></script>
 <script>
 (function(){
-  var data = {"generatedAt": "2026-05-29 15:40:22", "location": "广州天河区", "summary": {"avgMax": 31.1, "avgMin": 24.8, "totalRain": 386.9, "maxTemp": 35.0, "minTemp": 23.0, "maxRain": 39.0, "peakWind": 19.4, "heatDays": 12, "riskDays": 25, "forecastDays": 16, "trendDays": 14, "todayWeather": "雷暴", "todayMax": 35.0, "todayMin": 26.0, "todayFeel": 43.3, "todayRainProb": 84, "todayWind": 11.8, "todayUv": 8.5, "todaySunrise": "05:40", "todaySunset": "19:06"}, "days": [{"date": "2026-05-29", "type": "雷暴", "icon": "⛈", "max": 35.0, "min": 26.0, "feelMax": 43.3, "feelMin": 40.3, "rain": 6.0, "rainProb": 84, "wind": 11.8, "windDir": 184, "uv": 8.5, "sunrise": "05:40", "sunset": "19:06", "sourceType": "forecast"}, {"date": "2026-05-30", "type": "强阵雨", "icon": "🌧", "max": 31.4, "min": 24.6, "feelMax": 38.5, "feelMin": 35.5, "rain": 16.5, "rainProb": 98, "wind": 7.4, "windDir": 55, "uv": 8.8, "sunrise": "05:40", "sunset": "19:07", "sourceType": "forecast"}, {"date": "2026-05-31", "type": "中雨", "icon": "🌧", "max": 31.5, "min": 23.9, "feelMax": 38.7, "feelMin": 35.7, "rain": 11.9, "rainProb": 82, "wind": 8.5, "windDir": 148, "uv": 8.2, "sunrise": "05:40", "sunset": "19:07", "sourceType": "forecast"}, {"date": "2026-06-01", "type": "雷暴", "icon": "⛈", "max": 32.8, "min": 25.4, "feelMax": 40.5, "feelMin": 37.5, "rain": 1.2, "rainProb": 58, "wind": 9.6, "windDir": 204, "uv": 8.7, "sunrise": "05:40", "sunset": "19:08", "sourceType": "forecast"}, {"date": "2026-06-02", "type": "雷暴", "icon": "⛈", "max": 33.0, "min": 26.0, "feelMax": 41.1, "feelMin": 38.1, "rain": 4.1, "rainProb": 63, "wind": 8.2, "windDir": 211, "uv": 9.1, "sunrise": "05:40", "sunset": "19:08", "sourceType": "forecast"}, {"date": "2026-06-03", "type": "雷暴", "icon": "⛈", "max": 33.5, "min": 26.3, "feelMax": 41.6, "feelMin": 38.6, "rain": 0.9, "rainProb": 55, "wind": 11.8, "windDir": 184, "uv": 6.3, "sunrise": "05:40", "sunset": "19:09", "sourceType": "forecast"}, {"date": "2026-06-04", "type": "雷暴", "icon": "⛈", "max": 33.0, "min": 26.4, "feelMax": 40.7, "feelMin": 37.7, "rain": 1.2, "rainProb": 59, "wind": 11.5, "windDir": 200, "uv": 4.9, "sunrise": "05:40", "sunset": "19:09", "sourceType": "forecast"}, {"date": "2026-06-05", "type": "雷暴", "icon": "⛈", "max": 30.1, "min": 25.6, "feelMax": 36.6, "feelMin": 33.6, "rain": 14.1, "rainProb": 76, "wind": 10.6, "windDir": 208, "uv": 2.5, "sunrise": "05:40", "sunset": "19:09", "sourceType": "forecast"}, {"date": "2026-06-06", "type": "雷暴", "icon": "⛈", "max": 31.5, "min": 25.5, "feelMax": 37.9, "feelMin": 34.9, "rain": 7.2, "rainProb": 80, "wind": 10.3, "windDir": 176, "uv": 6.3, "sunrise": "05:40", "sunset": "19:10", "sourceType": "forecast"}, {"date": "2026-06-07", "type": "雷暴", "icon": "⛈", "max": 33.5, "min": 26.7, "feelMax": 41.0, "feelMin": 38.0, "rain": 6.6, "rainProb": 88, "wind": 8.0, "windDir": 197, "uv": 5.5, "sunrise": "05:40", "sunset": "19:10", "sourceType": "forecast"}, {"date": "2026-06-08", "type": "雷暴", "icon": "⛈", "max": 31.5, "min": 25.0, "feelMax": 38.2, "feelMin": 35.2, "rain": 16.2, "rainProb": 90, "wind": 8.0, "windDir": 151, "uv": 6.7, "sunrise": "05:40", "sunset": "19:11", "sourceType": "forecast"}, {"date": "2026-06-09", "type": "强阵雨", "icon": "🌧", "max": 26.8, "min": 24.6, "feelMax": 33.4, "feelMin": 30.4, "rain": 39.0, "rainProb": 86, "wind": 5.4, "windDir": 20, "uv": 6.3, "sunrise": "05:40", "sunset": "19:11", "sourceType": "forecast"}, {"date": "2026-06-10", "type": "中雨", "icon": "🌧", "max": 25.8, "min": 23.8, "feelMax": 31.5, "feelMin": 28.5, "rain": 33.0, "rainProb": 84, "wind": 13.1, "windDir": 93, "uv": 0.8, "sunrise": "05:40", "sunset": "19:11", "sourceType": "forecast"}, {"date": "2026-06-11", "type": "小雨", "icon": "🌦", "max": 27.5, "min": 23.4, "feelMax": 32.1, "feelMin": 29.1, "rain": 5.1, "rainProb": 72, "wind": 11.9, "windDir": 50, "uv": 6.3, "sunrise": "05:40", "sunset": "19:12", "sourceType": "forecast"}, {"date": "2026-06-12", "type": "毛毛雨", "icon": "☁", "max": 31.5, "min": 23.4, "feelMax": 38.4, "feelMin": 35.4, "rain": 0.6, "rainProb": 80, "wind": 7.6, "windDir": 126, "uv": 8.8, "sunrise": "05:40", "sunset": "19:12", "sourceType": "forecast"}, {"date": "2026-06-13", "type": "强阵雨", "icon": "🌧", "max": 34.6, "min": 25.5, "feelMax": 39.5, "feelMin": 36.5, "rain": 13.1, "rainProb": 61, "wind": 19.4, "windDir": 152, "uv": 8.5, "sunrise": "05:40", "sunset": "19:12", "sourceType": "forecast"}, {"date": "2026-06-14", "type": "强阵雨", "icon": "🌧", "max": 34.5, "min": 26.7, "feelMax": 42.8, "feelMin": 30.2, "rain": 7.9, "rainProb": 80, "wind": 12.2, "windDir": 183, "uv": 4.8, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-15", "type": "强阵雨", "icon": "🌧", "max": 32.8, "min": 25.7, "feelMax": 41.7, "feelMin": 29.2, "rain": 13.3, "rainProb": 92, "wind": 8.5, "windDir": 153, "uv": 5.9, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-16", "type": "暴雨", "icon": "⛈", "max": 29.3, "min": 25.5, "feelMax": 37.9, "feelMin": 29.0, "rain": 30.5, "rainProb": 88, "wind": 7.5, "windDir": 13, "uv": 5.2, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-17", "type": "暴雨", "icon": "⛈", "max": 27.2, "min": 24.3, "feelMax": 35.5, "feelMin": 27.8, "rain": 30.3, "rainProb": 79, "wind": 10.6, "windDir": 107, "uv": 1.0, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-18", "type": "中雨", "icon": "🌧", "max": 28.3, "min": 23.3, "feelMax": 36.2, "feelMin": 26.8, "rain": 10.2, "rainProb": 69, "wind": 10.8, "windDir": 56, "uv": 5.5, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-19", "type": "中雨", "icon": "🌧", "max": 31.8, "min": 23.0, "feelMax": 39.8, "feelMin": 26.5, "rain": 3.5, "rainProb": 74, "wind": 9.0, "windDir": 119, "uv": 7.7, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-20", "type": "中雨", "icon": "🌧", "max": 34.6, "min": 24.7, "feelMax": 42.5, "feelMin": 28.2, "rain": 10.1, "rainProb": 68, "wind": 15.3, "windDir": 141, "uv": 7.0, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-21", "type": "中雨", "icon": "🌧", "max": 34.7, "min": 25.2, "feelMax": 42.9, "feelMin": 28.7, "rain": 9.0, "rainProb": 78, "wind": 9.2, "windDir": 209, "uv": 4.8, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-22", "type": "强阵雨", "icon": "🌧", "max": 32.9, "min": 24.2, "feelMax": 41.5, "feelMin": 27.7, "rain": 13.2, "rainProb": 85, "wind": 7.7, "windDir": 137, "uv": 4.6, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-23", "type": "暴雨", "icon": "⛈", "max": 28.6, "min": 24.1, "feelMax": 37.0, "feelMin": 27.6, "rain": 29.4, "rainProb": 81, "wind": 5.6, "windDir": 12, "uv": 5.2, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-24", "type": "暴雨", "icon": "⛈", "max": 25.9, "min": 23.8, "feelMax": 34.2, "feelMin": 27.3, "rain": 27.7, "rainProb": 80, "wind": 10.9, "windDir": 105, "uv": 1.0, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-25", "type": "中雨", "icon": "🌧", "max": 26.3, "min": 23.4, "feelMax": 34.2, "feelMin": 26.9, "rain": 11.5, "rainProb": 70, "wind": 12.8, "windDir": 51, "uv": 5.9, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-26", "type": "强阵雨", "icon": "🌧", "max": 29.3, "min": 23.1, "feelMax": 37.7, "feelMin": 26.6, "rain": 4.8, "rainProb": 81, "wind": 10.2, "windDir": 104, "uv": 6.4, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}, {"date": "2026-06-27", "type": "中雨", "icon": "🌧", "max": 32.9, "min": 25.4, "feelMax": 40.5, "feelMin": 28.9, "rain": 8.8, "rainProb": 63, "wind": 16.1, "windDir": 158, "uv": 6.3, "sunrise": "05:40", "sunset": "19:12", "sourceType": "trend"}], "next72": [{"time": "05-29 00:00", "temp": 28.8, "feel": 35.6, "humid": 90, "rainProb": 2, "rain": 0.0, "pressure": 1006.8, "wind": 8.3, "weather": "雷暴"}, {"time": "05-29 01:00", "temp": 28.5, "feel": 35.3, "humid": 90, "rainProb": 9, "rain": 0.0, "pressure": 1006.9, "wind": 6.8, "weather": "雷暴"}, {"time": "05-29 02:00", "temp": 28.6, "feel": 35.3, "humid": 89, "rainProb": 14, "rain": 0.0, "pressure": 1006.0, "wind": 8.2, "weather": "雷暴"}, {"time": "05-29 03:00", "temp": 28.0, "feel": 34.6, "humid": 89, "rainProb": 15, "rain": 0.0, "pressure": 1005.7, "wind": 5.8, "weather": "雷暴"}, {"time": "05-29 04:00", "temp": 27.5, "feel": 34.0, "humid": 90, "rainProb": 15, "rain": 0.0, "pressure": 1005.8, "wind": 5.8, "weather": "雷暴"}, {"time": "05-29 05:00", "temp": 27.0, "feel": 34.0, "humid": 94, "rainProb": 14, "rain": 0.0, "pressure": 1006.0, "wind": 2.9, "weather": "雷暴"}, {"time": "05-29 06:00", "temp": 26.9, "feel": 33.4, "humid": 95, "rainProb": 14, "rain": 0.0, "pressure": 1006.2, "wind": 5.3, "weather": "雷暴"}, {"time": "05-29 07:00", "temp": 27.8, "feel": 34.7, "humid": 90, "rainProb": 14, "rain": 0.0, "pressure": 1007.1, "wind": 4.0, "weather": "雷暴"}, {"time": "05-29 08:00", "temp": 29.2, "feel": 35.3, "humid": 80, "rainProb": 14, "rain": 0.0, "pressure": 1007.3, "wind": 6.2, "weather": "阴"}, {"time": "05-29 09:00", "temp": 30.2, "feel": 36.8, "humid": 75, "rainProb": 12, "rain": 0.0, "pressure": 1007.1, "wind": 2.2, "weather": "阴"}, {"time": "05-29 10:00", "temp": 31.7, "feel": 38.3, "humid": 68, "rainProb": 10, "rain": 0.0, "pressure": 1007.1, "wind": 3.1, "weather": "阴"}, {"time": "05-29 11:00", "temp": 32.9, "feel": 40.2, "humid": 63, "rainProb": 10, "rain": 0.0, "pressure": 1007.0, "wind": 3.6, "weather": "雷暴"}, {"time": "05-29 12:00", "temp": 34.0, "feel": 42.3, "humid": 61, "rainProb": 13, "rain": 0.0, "pressure": 1006.9, "wind": 4.5, "weather": "雷暴"}, {"time": "05-29 13:00", "temp": 34.6, "feel": 42.6, "humid": 60, "rainProb": 17, "rain": 0.0, "pressure": 1006.1, "wind": 5.6, "weather": "雷暴"}, {"time": "05-29 14:00", "temp": 35.0, "feel": 43.3, "humid": 59, "rainProb": 25, "rain": 0.0, "pressure": 1004.4, "wind": 3.8, "weather": "雷暴"}, {"time": "05-29 15:00", "temp": 32.3, "feel": 38.4, "humid": 63, "rainProb": 37, "rain": 1.2, "pressure": 1004.0, "wind": 11.8, "weather": "中雨"}, {"time": "05-29 16:00", "temp": 32.8, "feel": 39.5, "humid": 66, "rainProb": 52, "rain": 0.1, "pressure": 1003.6, "wind": 4.1, "weather": "雷暴"}, {"time": "05-29 17:00", "temp": 27.0, "feel": 32.4, "humid": 91, "rainProb": 65, "rain": 2.4, "pressure": 1005.7, "wind": 10.3, "weather": "阵雨"}, {"time": "05-29 18:00", "temp": 26.5, "feel": 33.1, "humid": 96, "rainProb": 75, "rain": 1.3, "pressure": 1005.8, "wind": 4.6, "weather": "阵雨"}, {"time": "05-29 19:00", "temp": 26.7, "feel": 33.8, "humid": 95, "rainProb": 84, "rain": 0.9, "pressure": 1006.6, "wind": 0.9, "weather": "小雨"}, {"time": "05-29 20:00", "temp": 26.3, "feel": 32.8, "humid": 98, "rainProb": 84, "rain": 0.1, "pressure": 1007.0, "wind": 6.6, "weather": "毛毛雨"}, {"time": "05-29 21:00", "temp": 26.1, "feel": 32.9, "humid": 99, "rainProb": 71, "rain": 0.0, "pressure": 1007.2, "wind": 4.1, "weather": "阴"}, {"time": "05-29 22:00", "temp": 26.0, "feel": 32.7, "humid": 99, "rainProb": 50, "rain": 0.0, "pressure": 1007.4, "wind": 4.7, "weather": "阴"}, {"time": "05-29 23:00", "temp": 26.1, "feel": 33.2, "humid": 99, "rainProb": 33, "rain": 0.0, "pressure": 1007.8, "wind": 1.5, "weather": "晴"}, {"time": "05-30 00:00", "temp": 26.0, "feel": 33.0, "humid": 98, "rainProb": 24, "rain": 0.0, "pressure": 1007.5, "wind": 0.6, "weather": "晴"}, {"time": "05-30 01:00", "temp": 25.7, "feel": 32.4, "humid": 98, "rainProb": 19, "rain": 0.0, "pressure": 1007.0, "wind": 2.3, "weather": "晴间多云"}, {"time": "05-30 02:00", "temp": 25.6, "feel": 32.4, "humid": 98, "rainProb": 18, "rain": 0.0, "pressure": 1006.6, "wind": 1.3, "weather": "晴"}, {"time": "05-30 03:00", "temp": 25.5, "feel": 32.0, "humid": 99, "rainProb": 22, "rain": 0.0, "pressure": 1006.4, "wind": 3.4, "weather": "晴"}, {"time": "05-30 04:00", "temp": 25.5, "feel": 31.5, "humid": 99, "rainProb": 30, "rain": 0.0, "pressure": 1006.3, "wind": 5.6, "weather": "晴间多云"}, {"time": "05-30 05:00", "temp": 25.4, "feel": 31.3, "humid": 98, "rainProb": 37, "rain": 0.0, "pressure": 1006.5, "wind": 5.3, "weather": "多云"}, {"time": "05-30 06:00", "temp": 25.0, "feel": 30.7, "humid": 98, "rainProb": 41, "rain": 0.6, "pressure": 1007.1, "wind": 5.5, "weather": "小雨"}, {"time": "05-30 07:00", "temp": 24.6, "feel": 30.4, "humid": 99, "rainProb": 45, "rain": 3.4, "pressure": 1007.9, "wind": 3.6, "weather": "强阵雨"}, {"time": "05-30 08:00", "temp": 25.8, "feel": 31.7, "humid": 95, "rainProb": 49, "rain": 0.7, "pressure": 1008.1, "wind": 5.5, "weather": "小雨"}, {"time": "05-30 09:00", "temp": 27.5, "feel": 33.6, "humid": 86, "rainProb": 53, "rain": 0.3, "pressure": 1008.3, "wind": 4.8, "weather": "毛毛雨"}, {"time": "05-30 10:00", "temp": 29.0, "feel": 35.2, "humid": 78, "rainProb": 58, "rain": 0.0, "pressure": 1008.0, "wind": 3.6, "weather": "阴"}, {"time": "05-30 11:00", "temp": 31.0, "feel": 38.2, "humid": 69, "rainProb": 63, "rain": 0.1, "pressure": 1007.6, "wind": 5.6, "weather": "毛毛雨"}, {"time": "05-30 12:00", "temp": 28.3, "feel": 35.0, "humid": 82, "rainProb": 68, "rain": 4.0, "pressure": 1007.3, "wind": 5.7, "weather": "强阵雨"}, {"time": "05-30 13:00", "temp": 29.2, "feel": 35.8, "humid": 78, "rainProb": 73, "rain": 0.9, "pressure": 1006.8, "wind": 4.0, "weather": "小雨"}, {"time": "05-30 14:00", "temp": 30.5, "feel": 37.3, "humid": 73, "rainProb": 78, "rain": 0.5, "pressure": 1005.4, "wind": 5.1, "weather": "小雨"}, {"time": "05-30 15:00", "temp": 31.1, "feel": 38.4, "humid": 71, "rainProb": 86, "rain": 0.6, "pressure": 1004.7, "wind": 3.6, "weather": "小雨"}, {"time": "05-30 16:00", "temp": 31.4, "feel": 38.5, "humid": 70, "rainProb": 94, "rain": 0.2, "pressure": 1004.5, "wind": 1.1, "weather": "毛毛雨"}, {"time": "05-30 17:00", "temp": 27.8, "feel": 33.6, "humid": 87, "rainProb": 98, "rain": 1.5, "pressure": 1004.6, "wind": 7.4, "weather": "阵雨"}, {"time": "05-30 18:00", "temp": 26.0, "feel": 32.3, "humid": 93, "rainProb": 94, "rain": 2.1, "pressure": 1005.6, "wind": 3.1, "weather": "阵雨"}, {"time": "05-30 19:00", "temp": 26.0, "feel": 32.4, "humid": 96, "rainProb": 84, "rain": 1.3, "pressure": 1005.5, "wind": 4.0, "weather": "阵雨"}, {"time": "05-30 20:00", "temp": 25.9, "feel": 32.3, "humid": 99, "rainProb": 73, "rain": 0.3, "pressure": 1005.8, "wind": 5.0, "weather": "毛毛雨"}, {"time": "05-30 21:00", "temp": 25.7, "feel": 32.0, "humid": 99, "rainProb": 57, "rain": 0.0, "pressure": 1006.2, "wind": 4.9, "weather": "多云"}, {"time": "05-30 22:00", "temp": 25.4, "feel": 31.5, "humid": 99, "rainProb": 39, "rain": 0.0, "pressure": 1006.9, "wind": 5.2, "weather": "晴间多云"}, {"time": "05-30 23:00", "temp": 25.1, "feel": 31.2, "humid": 99, "rainProb": 29, "rain": 0.0, "pressure": 1007.1, "wind": 5.1, "weather": "阴"}, {"time": "05-31 00:00", "temp": 24.9, "feel": 30.9, "humid": 100, "rainProb": 31, "rain": 0.1, "pressure": 1006.8, "wind": 4.3, "weather": "毛毛雨"}, {"time": "05-31 01:00", "temp": 24.6, "feel": 31.0, "humid": 99, "rainProb": 41, "rain": 0.3, "pressure": 1006.5, "wind": 0.2, "weather": "毛毛雨"}, {"time": "05-31 02:00", "temp": 24.7, "feel": 30.8, "humid": 98, "rainProb": 51, "rain": 1.0, "pressure": 1006.2, "wind": 1.8, "weather": "中雨"}, {"time": "05-31 03:00", "temp": 24.4, "feel": 29.8, "humid": 99, "rainProb": 60, "rain": 1.1, "pressure": 1006.1, "wind": 5.3, "weather": "中雨"}, {"time": "05-31 04:00", "temp": 24.2, "feel": 29.5, "humid": 99, "rainProb": 70, "rain": 0.9, "pressure": 1005.9, "wind": 5.4, "weather": "小雨"}, {"time": "05-31 05:00", "temp": 24.0, "feel": 29.5, "humid": 99, "rainProb": 76, "rain": 1.0, "pressure": 1005.9, "wind": 4.3, "weather": "中雨"}, {"time": "05-31 06:00", "temp": 23.9, "feel": 29.0, "humid": 99, "rainProb": 75, "rain": 1.5, "pressure": 1006.4, "wind": 5.0, "weather": "小雨"}, {"time": "05-31 07:00", "temp": 24.0, "feel": 29.2, "humid": 99, "rainProb": 70, "rain": 2.5, "pressure": 1007.3, "wind": 6.1, "weather": "中雨"}, {"time": "05-31 08:00", "temp": 24.9, "feel": 30.4, "humid": 96, "rainProb": 65, "rain": 1.9, "pressure": 1007.6, "wind": 4.2, "weather": "小雨"}, {"time": "05-31 09:00", "temp": 26.5, "feel": 31.8, "humid": 85, "rainProb": 60, "rain": 0.4, "pressure": 1007.7, "wind": 4.1, "weather": "毛毛雨"}, {"time": "05-31 10:00", "temp": 28.1, "feel": 33.7, "humid": 76, "rainProb": 55, "rain": 0.1, "pressure": 1007.6, "wind": 4.7, "weather": "毛毛雨"}, {"time": "05-31 11:00", "temp": 29.4, "feel": 35.3, "humid": 70, "rainProb": 51, "rain": 0.1, "pressure": 1007.0, "wind": 5.2, "weather": "毛毛雨"}, {"time": "05-31 12:00", "temp": 30.5, "feel": 37.4, "humid": 68, "rainProb": 49, "rain": 0.1, "pressure": 1006.2, "wind": 4.4, "weather": "毛毛雨"}, {"time": "05-31 13:00", "temp": 31.5, "feel": 38.7, "humid": 65, "rainProb": 49, "rain": 0.0, "pressure": 1005.1, "wind": 4.0, "weather": "阴"}, {"time": "05-31 14:00", "temp": 31.4, "feel": 37.8, "humid": 66, "rainProb": 51, "rain": 0.1, "pressure": 1004.1, "wind": 5.6, "weather": "毛毛雨"}, {"time": "05-31 15:00", "temp": 31.3, "feel": 37.5, "humid": 67, "rainProb": 57, "rain": 0.1, "pressure": 1003.6, "wind": 5.6, "weather": "毛毛雨"}, {"time": "05-31 16:00", "temp": 31.2, "feel": 37.1, "humid": 68, "rainProb": 64, "rain": 0.0, "pressure": 1003.0, "wind": 6.0, "weather": "晴间多云"}, {"time": "05-31 17:00", "temp": 30.4, "feel": 36.1, "humid": 71, "rainProb": 71, "rain": 0.2, "pressure": 1003.0, "wind": 4.6, "weather": "毛毛雨"}, {"time": "05-31 18:00", "temp": 29.8, "feel": 36.3, "humid": 77, "rainProb": 77, "rain": 0.3, "pressure": 1003.3, "wind": 2.1, "weather": "毛毛雨"}, {"time": "05-31 19:00", "temp": 28.5, "feel": 35.2, "humid": 84, "rainProb": 82, "rain": 0.1, "pressure": 1004.0, "wind": 3.1, "weather": "毛毛雨"}, {"time": "05-31 20:00", "temp": 27.9, "feel": 34.5, "humid": 89, "rainProb": 80, "rain": 0.1, "pressure": 1004.3, "wind": 4.0, "weather": "毛毛雨"}, {"time": "05-31 21:00", "temp": 27.4, "feel": 33.3, "humid": 89, "rainProb": 65, "rain": 0.0, "pressure": 1004.7, "wind": 6.5, "weather": "晴间多云"}, {"time": "05-31 22:00", "temp": 26.8, "feel": 32.3, "humid": 90, "rainProb": 44, "rain": 0.0, "pressure": 1005.2, "wind": 8.5, "weather": "晴间多云"}, {"time": "05-31 23:00", "temp": 26.4, "feel": 31.8, "humid": 91, "rainProb": 27, "rain": 0.0, "pressure": 1005.6, "wind": 7.9, "weather": "晴"}], "weatherPie": [{"name": "雷暴", "value": 9}, {"name": "强阵雨", "value": 7}, {"name": "中雨", "value": 8}, {"name": "小雨", "value": 1}, {"name": "毛毛雨", "value": 1}, {"name": "暴雨", "value": 4}], "alerts": [{"date": "2026-05-29", "tags": "高温体感 / 强降水", "type": "forecast"}, {"date": "2026-05-30", "tags": "强降水", "type": "forecast"}, {"date": "2026-05-31", "tags": "强降水", "type": "forecast"}, {"date": "2026-06-01", "tags": "高温体感", "type": "forecast"}, {"date": "2026-06-02", "tags": "高温体感", "type": "forecast"}, {"date": "2026-06-03", "tags": "高温体感", "type": "forecast"}, {"date": "2026-06-04", "tags": "高温体感", "type": "forecast"}, {"date": "2026-06-06", "tags": "强降水", "type": "forecast"}, {"date": "2026-06-07", "tags": "高温体感 / 强降水", "type": "forecast"}, {"date": "2026-06-08", "tags": "强降水", "type": "forecast"}, {"date": "2026-06-09", "tags": "强降水", "type": "forecast"}, {"date": "2026-06-10", "tags": "强降水", "type": "forecast"}]};
-  var days = data.days, next72 = data.next72, summary = data.summary;
-  var commonText = {color:'#cdeeff', fontFamily:'Microsoft YaHei'};
-  var splitLine = {lineStyle:{color:'rgba(120,190,255,.12)'}};
-  var axisLine  = {lineStyle:{color:'rgba(120,190,255,.35)'}};
-  var xDates  = ["05-29", "05-30", "05-31", "06-01", "06-02", "06-03", "06-04", "06-05", "06-06", "06-07", "06-08", "06-09", "06-10", "06-11", "06-12", "06-13", "06-14", "06-15", "06-16", "06-17", "06-18", "06-19", "06-20", "06-21", "06-22", "06-23", "06-24", "06-25", "06-26", "06-27"];
-  var maxT    = [35.0, 31.4, 31.5, 32.8, 33.0, 33.5, 33.0, 30.1, 31.5, 33.5, 31.5, 26.8, 25.8, 27.5, 31.5, 34.6, 34.5, 32.8, 29.3, 27.2, 28.3, 31.8, 34.6, 34.7, 32.9, 28.6, 25.9, 26.3, 29.3, 32.9];
-  var minT    = [26.0, 24.6, 23.9, 25.4, 26.0, 26.3, 26.4, 25.6, 25.5, 26.7, 25.0, 24.6, 23.8, 23.4, 23.4, 25.5, 26.7, 25.7, 25.5, 24.3, 23.3, 23.0, 24.7, 25.2, 24.2, 24.1, 23.8, 23.4, 23.1, 25.4];
-  var feelMax = [43.3, 38.5, 38.7, 40.5, 41.1, 41.6, 40.7, 36.6, 37.9, 41.0, 38.2, 33.4, 31.5, 32.1, 38.4, 39.5, 42.8, 41.7, 37.9, 35.5, 36.2, 39.8, 42.5, 42.9, 41.5, 37.0, 34.2, 34.2, 37.7, 40.5];
-  var rain    = [6.0, 16.5, 11.9, 1.2, 4.1, 0.9, 1.2, 14.1, 7.2, 6.6, 16.2, 39.0, 33.0, 5.1, 0.6, 13.1, 7.9, 13.3, 30.5, 30.3, 10.2, 3.5, 10.1, 9.0, 13.2, 29.4, 27.7, 11.5, 4.8, 8.8];
-  var wind    = [11.8, 7.4, 8.5, 9.6, 8.2, 11.8, 11.5, 10.6, 10.3, 8.0, 8.0, 5.4, 13.1, 11.9, 7.6, 19.4, 12.2, 8.5, 7.5, 10.6, 10.8, 9.0, 15.3, 9.2, 7.7, 5.6, 10.9, 12.8, 10.2, 16.1];
-  var uv      = [8.5, 8.8, 8.2, 8.7, 9.1, 6.3, 4.9, 2.5, 6.3, 5.5, 6.7, 6.3, 0.8, 6.3, 8.8, 8.5, 4.8, 5.9, 5.2, 1.0, 5.5, 7.7, 7.0, 4.8, 4.6, 5.2, 1.0, 5.9, 6.4, 6.3];
-  var radarVals = [43.3, 39.0, 98, 19.4, 9.1, 12.0];
-  var hmData  = [[0, 0, 35.0], [0, 1, 26.0], [0, 2, 84], [0, 3, 11.8], [1, 0, 31.4], [1, 1, 24.6], [1, 2, 98], [1, 3, 7.4], [2, 0, 31.5], [2, 1, 23.9], [2, 2, 82], [2, 3, 8.5], [3, 0, 32.8], [3, 1, 25.4], [3, 2, 58], [3, 3, 9.6], [4, 0, 33.0], [4, 1, 26.0], [4, 2, 63], [4, 3, 8.2], [5, 0, 33.5], [5, 1, 26.3], [5, 2, 55], [5, 3, 11.8], [6, 0, 33.0], [6, 1, 26.4], [6, 2, 59], [6, 3, 11.5], [7, 0, 30.1], [7, 1, 25.6], [7, 2, 76], [7, 3, 10.6], [8, 0, 31.5], [8, 1, 25.5], [8, 2, 80], [8, 3, 10.3], [9, 0, 33.5], [9, 1, 26.7], [9, 2, 88], [9, 3, 8.0], [10, 0, 31.5], [10, 1, 25.0], [10, 2, 90], [10, 3, 8.0], [11, 0, 26.8], [11, 1, 24.6], [11, 2, 86], [11, 3, 5.4], [12, 0, 25.8], [12, 1, 23.8], [12, 2, 84], [12, 3, 13.1], [13, 0, 27.5], [13, 1, 23.4], [13, 2, 72], [13, 3, 11.9], [14, 0, 31.5], [14, 1, 23.4], [14, 2, 80], [14, 3, 7.6], [15, 0, 34.6], [15, 1, 25.5], [15, 2, 61], [15, 3, 19.4], [16, 0, 34.5], [16, 1, 26.7], [16, 2, 80], [16, 3, 12.2], [17, 0, 32.8], [17, 1, 25.7], [17, 2, 92], [17, 3, 8.5], [18, 0, 29.3], [18, 1, 25.5], [18, 2, 88], [18, 3, 7.5], [19, 0, 27.2], [19, 1, 24.3], [19, 2, 79], [19, 3, 10.6], [20, 0, 28.3], [20, 1, 23.3], [20, 2, 69], [20, 3, 10.8], [21, 0, 31.8], [21, 1, 23.0], [21, 2, 74], [21, 3, 9.0], [22, 0, 34.6], [22, 1, 24.7], [22, 2, 68], [22, 3, 15.3], [23, 0, 34.7], [23, 1, 25.2], [23, 2, 78], [23, 3, 9.2], [24, 0, 32.9], [24, 1, 24.2], [24, 2, 85], [24, 3, 7.7], [25, 0, 28.6], [25, 1, 24.1], [25, 2, 81], [25, 3, 5.6], [26, 0, 25.9], [26, 1, 23.8], [26, 2, 80], [26, 3, 10.9], [27, 0, 26.3], [27, 1, 23.4], [27, 2, 70], [27, 3, 12.8], [28, 0, 29.3], [28, 1, 23.1], [28, 2, 81], [28, 3, 10.2], [29, 0, 32.9], [29, 1, 25.4], [29, 2, 63], [29, 3, 16.1]];
-  var nextH72 = next72;
+  // ══════════════════════════════════════════════════════
+  //  constants
+  // ═══════════════════════════════════════════════════════
+  const LAT = 23.135, LON = 113.361;
+  const PAST_DAYS = 14, FORECAST_DAYS = 16;
+  const REFRESH_SEC = 300; // 5 minutes
 
-  /* 趋势图 */
-  var tc = echarts.init(document.getElementById('trendChart'));
-  tc.setOption({
-    grid:{left:55,right:55,top:50,bottom:40},
-    legend:{top:10,textStyle:commonText,data:['最高温','最低温','体感峰值','降水量']},
-    tooltip:{trigger:'axis',backgroundColor:'rgba(3,16,34,.92)',borderColor:'rgba(70,209,255,.35)',textStyle:commonText},
-    xAxis:[{type:'category',data:xDates,axisLabel:{color:'#97dfff'},axisLine:axisLine,axisTick:{show:false}}],
-    yAxis:[
-      {type:'value',name:'温度℃',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:splitLine,axisLine:axisLine},
-      {type:'value',name:'降水mm',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:{show:false},axisLine:axisLine}
-    ],
-    series:[
-      {name:'最高温',type:'line',smooth:true,symbol:'circle',symbolSize:8,data:maxT,
-       lineStyle:{width:3,color:'#ff8f3d'},itemStyle:{color:'#ff8f3d'},
-       areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,143,61,.28)'},{offset:1,color:'rgba(255,143,61,0)'}])},
-       markLine:{symbol:['none','none'],label:{color:'#ffd9b8'},lineStyle:{type:'dashed',color:'rgba(255,173,111,.6)'},data:[{yAxis:summary.avgMax,name:'均值高温'}]}},
-      {name:'最低温',type:'line',smooth:true,symbol:'diamond',symbolSize:7,data:minT,lineStyle:{width:2,color:'#39e0ff'},itemStyle:{color:'#39e0ff'}},
-      {name:'体感峰值',type:'line',smooth:true,symbol:'none',data:feelMax,lineStyle:{width:2,type:'dashed',color:'#ffe16b'},itemStyle:{color:'#ffe16b'}},
-      {name:'降水量',type:'bar',yAxisIndex:1,barWidth:10,data:rain,
-       itemStyle:{borderRadius:[6,6,0,0],color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#1de2ff'},{offset:1,color:'rgba(29,226,255,.15)'}])}},
-      {type:'custom',renderItem:function(p,a){
-        var idx=a.value(0); if(idx<16)return;
-        var x=a.coord([idx,0])[0]; var h=p.coordSys.height;
-        return {type:'rect',shape:{x:x-10,y:p.coordSys.y,width:20,height:h},style:{fill:'rgba(122,125,255,.08)'}};
-      },data:days.map(function(d,i){return[i,0];}),silent:true,z:0}
-    ]
-  });
+  const WMO = {
+    0:'晴',1:'晴间多云',2:'多云',3:'阴',45:'雾',48:'浓雾',
+    51:'小毛毛雨',53:'中毛毛雨',55:'大毛毛雨',
+    56:'冻毛毛雨',57:'强冻毛毛雨',
+    61:'小雨',63:'中雨',65:'大雨',
+    66:'冻雨',67:'强冻雨',
+    71:'小雪',73:'中雪',75:'大雪',77:'雪粒',
+    80:'小阵雨',81:'中阵雨',82:'强阵雨',
+    85:'小阵雪',86:'大阵雪',
+    95:'雷暴',96:'雷暴+冰雹',99:'强雷暴+冰雹'
+  };
+  const WEATHER_EMOJI = {
+    '晴':'☀','晴间多云':'','多云':'⛅','阴':'☁','雾':'🌫','浓雾':'🌫',
+    '小雨':'🌦','中雨':'','大雨':'🌧','暴雨':'',
+    '小毛毛雨':'','中毛毛雨':'🌦','大毛毛雨':'🌧',
+    '冻雨':'🌨','强冻雨':'🌨','冻毛毛雨':'','强冻毛毛雨':'🌨',
+    '小雪':'🌨','中雪':'','大雪':'❄','雪粒':'',
+    '小阵雨':'','中阵雨':'🌧','强阵雨':'⛈','暴雨':'⛈',
+    '小阵雪':'🌨','大阵雪':'❄',
+    '雷暴':'⛈','雷暴+冰雹':'','强雷暴+冰雹':'',
+    '未知':'☁'
+  };
 
-  /* 72h 图 */
-  var hc = echarts.init(document.getElementById('hourlyChart'));
-  hc.setOption({
-    grid:{left:46,right:46,top:50,bottom:48},
-    legend:{top:10,textStyle:commonText,data:['气温','湿度','降雨概率']},
-    tooltip:{trigger:'axis',backgroundColor:'rgba(3,16,34,.92)',borderColor:'rgba(70,209,255,.35)',textStyle:commonText},
-    xAxis:{type:'category',data:nextH72.map(function(x){return x.time;}),axisLabel:{color:'#8ad6ff',interval:11,rotate:35},axisLine:axisLine,axisTick:{show:false}},
-    yAxis:[
-      {type:'value',name:'℃',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:splitLine,axisLine:axisLine},
-      {type:'value',name:'%',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:{show:false},axisLine:axisLine,max:100}
-    ],
-    series:[
-      {name:'气温',type:'line',smooth:true,data:nextH72.map(function(x){return x.temp;}),
-       lineStyle:{color:'#35e2ff',width:2.8},itemStyle:{color:'#35e2ff'},
-       areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(53,226,255,.28)'},{offset:1,color:'rgba(53,226,255,0)'}])}},
-      {name:'湿度',type:'line',smooth:true,yAxisIndex:1,data:nextH72.map(function(x){return x.humid;}),lineStyle:{color:'#7eff9f',width:2},itemStyle:{color:'#7eff9f'}},
-      {name:'降雨概率',type:'bar',yAxisIndex:1,barWidth:6,data:nextH72.map(function(x){return x.rainProb;}),itemStyle:{color:'rgba(255,196,77,.58)',borderRadius:[4,4,0,0]}}
-    ]
-  });
+  let charts = {};
+  let currentData = null;
+  let countdownTimer = null;
+  let scrollTimer = null;
+  let remaining = REFRESH_SEC;
 
-  /* 饼图 */
-  var pc = echarts.init(document.getElementById('pieChart'));
-  pc.setOption({
-    title:{text:'天气类型构成',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
-    tooltip:{trigger:'item'},
-    legend:{bottom:6,textStyle:{color:'#9cdfff',fontSize:11}},
-    series:[{type:'pie',radius:['36%','68%'],center:['50%','54%'],roseType:'radius',label:{color:'#dff8ff'},
-            itemStyle:{borderColor:'#031428',borderWidth:2},data:data.weatherPie}]
-  });
+  // ═══════════════════════════════════════════════════════
+  //  API fetch
+  // ═══════════════════════════════════════════════════════
+  async function fetchWeather() {
+    const params = new URLSearchParams({
+      latitude: LAT,
+      longitude: LON,
+      past_days: PAST_DAYS,
+      forecast_days: FORECAST_DAYS,
+      daily: 'temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,uv_index_max,weather_code,sunrise,sunset',
+      hourly: 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,surface_pressure,wind_speed_10m,wind_direction_10m',
+      hourly_start: 'today',
+      timezone: 'Asia/Shanghai',
+      forecast_hours: 72
+    });
+    const url = 'https://api.open-meteo.com/v1/forecast?' + params.toString();
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('API HTTP ' + resp.status);
+    return await resp.json();
+  }
 
-  /* 雷达图 */
-  var rc = echarts.init(document.getElementById('radarChart'));
-  rc.setOption({
-    title:{text:'未来30天风险雷达',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
-    radar:{center:['50%','56%'],radius:'62%',splitNumber:4,axisName:{color:'#a5e8ff'},
-           splitArea:{areaStyle:{color:['rgba(0,0,0,0)','rgba(29,132,255,.05)']}},
-           splitLine:{lineStyle:{color:'rgba(122,189,255,.24)'}},
-           axisLine:{lineStyle:{color:'rgba(122,189,255,.24)'}},
-           indicator:[{name:'高温体感',max:50},{name:'降雨强度',max:80},{name:'降雨概率',max:100},{name:'阵风',max:25},{name:'UV',max:12},{name:'温差',max:16}]},
-    series:[{type:'radar',data:[{value:radarVals,name:'风险轮廓',areaStyle:{color:'rgba(58,224,255,.24)'},lineStyle:{color:'#3ae0ff'},itemStyle:{color:'#3ae0ff'}}]}]
-  });
+  // ═══════════════════════════════════════════════════════
+  //  Process raw API data
+  // ═══════════════════════════════════════════════════════
+  function processData(raw) {
+    const d = raw.daily;
+    const h = raw.hourly;
+    const n = d.time.length; // should be 30
 
-  /* 热力矩阵 */
-  var mc = echarts.init(document.getElementById('heatmapChart'));
-  mc.setOption({
-    title:{text:'30天气象指标热力矩阵',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
-    grid:{left:52,right:16,top:44,bottom:28},
-    xAxis:{type:'category',data:xDates,axisLabel:{color:'#94dfff',interval:4},axisLine:axisLine,axisTick:{show:false}},
-    yAxis:{type:'category',data:['最高温','最低温','降雨概率','风速'],axisLabel:{color:'#94dfff'},axisLine:axisLine,axisTick:{show:false}},
-    visualMap:{min:0,max:100,show:false,inRange:{color:['#0b2a4d','#164e88','#18a6d9','#40ffd8','#ffe866','#ff8b4a']}},
-    series:[{type:'heatmap',data:hmData,label:{show:false},emphasis:{itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,.5)'}}}]
-  });
+    // Determine the split: first 14 are historical, rest are forecast
+    const histCount = PAST_DAYS;
+    const fcStart = histCount; // index 14 = today
+    const fcCount = FORECAST_DAYS; // 16
 
-  /* 风速/UV/气压 */
-  var cc = echarts.init(document.getElementById('comboChart'));
-  cc.setOption({
-    title:{text:'风速 / UV / 气压联动',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
-    grid:{left:42,right:42,top:46,bottom:28},
-    legend:{top:24,right:8,textStyle:{color:'#bfefff',fontSize:10},data:['风速','UV','气压趋势']},
-    tooltip:{trigger:'axis'},
-    xAxis:{type:'category',data:xDates,axisLabel:{color:'#95deff',interval:4},axisLine:axisLine},
-    yAxis:[{type:'value',axisLabel:{color:'#95deff'},splitLine:splitLine},{type:'value',axisLabel:{color:'#95deff'},splitLine:{show:false}}],
-    series:[
-      {name:'风速',type:'bar',data:wind,barWidth:8,itemStyle:{color:'rgba(111,182,255,.55)',borderRadius:[4,4,0,0]}},
-      {name:'UV',type:'line',data:uv,smooth:true,lineStyle:{color:'#ffe069',width:2},itemStyle:{color:'#ffe069'}},
-      {name:'气压趋势',type:'line',yAxisIndex:1,smooth:true,data:nextH72.slice(0,30).map(function(x){return x.pressure;}),lineStyle:{color:'#7effca',width:2,type:'dashed'},itemStyle:{color:'#7effca'}}
-    ]
-  });
+    // Build day records
+    const days = [];
+    for (let i = 0; i < n; i++) {
+      const weatherCode = d.weather_code[i];
+      const type = WMO[weatherCode] || '未知';
+      days.push({
+        date: d.time[i],
+        dateShort: d.time[i].slice(5), // MM-DD
+        type: type,
+        icon: WEATHER_EMOJI[type] || '☁',
+        max: +d.temperature_2m_max[i],
+        min: +d.temperature_2m_min[i],
+        feelMax: +d.apparent_temperature_max[i],
+        feelMin: +d.apparent_temperature_max[i],
+        rain: +d.precipitation_sum[i],
+        rainProb: +d.precipitation_probability_max[i],
+        wind: +d.wind_speed_10m_max[i],
+        uv: +d.uv_index_max[i],
+        sunrise: d.sunrise[i] ? d.sunrise[i].slice(11, 16) : '--:--',
+        sunset: d.sunset[i] ? d.sunset[i].slice(11, 16) : '--:--',
+        sourceType: i < fcStart ? 'history' : 'forecast'
+      });
+    }
 
-  /* 决策建议雷达 */
-  var ac = echarts.init(document.getElementById('adviceChart'));
-  ac.setOption({
-    radar:{center:['50%','33%'],radius:'38%',splitNumber:4,axisName:{color:'#a5e8ff'},
-           splitLine:{lineStyle:{color:'rgba(122,189,255,.2)'}},axisLine:{lineStyle:{color:'rgba(122,189,255,.2)'}},
-           splitArea:{areaStyle:{color:['rgba(0,0,0,0)','rgba(29,132,255,.04)']}},
-           indicator:[{name:'施工排班',max:100},{name:'物流调度',max:100},{name:'园区巡检',max:100},{name:'防汛值守',max:100},{name:'能源负荷',max:100},{name:'户外活动',max:100}]},
-    series:[{type:'radar',data:[{value:[62,68,74,Math.min(100,summary.riskDays*6+28),Math.min(100,summary.heatDays*5+35),58],
-           areaStyle:{color:'rgba(255,158,60,.20)'},lineStyle:{color:'#ff9e3c'},itemStyle:{color:'#ff9e3c'},name:'关注强度'}]}],
-    graphic:[{type:'group',left:'8%',top:'60%',children:[{type:'text',style:{
-      text:'1. 未来30天整体偏暖湿，前半段高温闷热明显，后续降水扰动增强。\n2. 建议对高温体感≥40℃时段安排错峰施工，户外作业增加补水与遮阳。\n3. 强降水/高概率降雨日提前检查园区排水、天台排水口、地下车库与弱电井。\n4. 物流/巡检优先规避午后强对流窗口，雷暴天加强设备断电和防雷巡查。\n5. 后14天属于趋势研判，适合周计划排班，不替代临近天气预警。',
-      fill:'#d8f6ff',font:'13px Microsoft YaHei',lineHeight:24}}]}]
-  });
+    // 72-hour hourly data
+    const next72 = [];
+    const hN = Math.min(72, h.time.length);
+    for (let i = 0; i < hN; i++) {
+      const wCode = h.weather_code[i];
+      next72.push({
+        time: h.time[i].slice(5).replace('T', ' '),
+        temp: +h.temperature_2m[i],
+        feel: +h.apparent_temperature[i],
+        humid: +h.relative_humidity_2m[i],
+        rainProb: +h.precipitation_probability[i],
+        rain: +h.precipitation[i],
+        pressure: +h.surface_pressure[i],
+        wind: +h.wind_speed_10m[i],
+        windDir: +h.wind_direction_10m[i],
+        weather: WMO[wCode] || '未知'
+      });
+    }
 
-  Dashboard.registerCharts({trendChart:tc, hourlyChart:hc, pieChart:pc, radarChart:rc, heatmapChart:mc, comboChart:cc, adviceChart:ac});
-  Dashboard.init(data);
+    // Summary statistics (full 30 days)
+    const allMax = days.map(x => x.max);
+    const allMin = days.map(x => x.min);
+    const allRain = days.map(x => x.rain);
+    const allWind = days.map(x => x.wind);
+    const allFeelMax = days.map(x => x.feelMax);
+    const allUV = days.map(x => x.uv);
 
-  window.addEventListener('resize', function(){
-    tc.resize(); hc.resize(); pc.resize(); rc.resize(); mc.resize(); cc.resize(); ac.resize();
+    const summary = {
+      avgMax: +(allMax.reduce((a, b) => a + b, 0) / allMax.length).toFixed(1),
+      avgMin: +(allMin.reduce((a, b) => a + b, 0) / allMin.length).toFixed(1),
+      totalRain: +allRain.reduce((a, b) => a + b, 0).toFixed(1),
+      maxTemp: +Math.max(...allMax).toFixed(1),
+      minTemp: +Math.min(...allMin).toFixed(1),
+      maxRain: +Math.max(...allRain).toFixed(1),
+      peakWind: +Math.max(...allWind).toFixed(1),
+      peakUV: +Math.max(...allUV).toFixed(1),
+      peakFeel: +Math.max(...allFeelMax).toFixed(1),
+      heatDays: days.filter(x => x.feelMax >= 38).length,
+      riskDays: days.filter(x => x.rain >= 20 || x.wind >= 30 || x.max >= 35).length,
+      forecastDays: fcCount,
+      trendDays: histCount,
+      histDays: histCount,
+      fcDays: fcCount,
+      todayWeather: days[fcStart].type,
+      todayMax: days[fcStart].max,
+      todayMin: days[fcStart].min,
+      todayFeel: days[fcStart].feelMax,
+      todayRainProb: days[fcStart].rainProb,
+      todayWind: days[fcStart].wind,
+      todayUv: days[fcStart].uv,
+      todaySunrise: days[fcStart].sunrise,
+      todaySunset: days[fcStart].sunset
+    };
+
+    // Weather type pie data
+    const typeCount = {};
+    days.forEach(x => { typeCount[x.type] = (typeCount[x.type] || 0) + 1; });
+    const weatherPie = Object.entries(typeCount)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, value]) => ({ name, value }));
+
+    // Alerts
+    const alerts = [];
+    days.forEach((x, i) => {
+      const tags = [];
+      if (x.feelMax >= 40) tags.push('高温体感≥40℃');
+      else if (x.feelMax >= 38) tags.push('高温闷热');
+      if (x.rain >= 20) tags.push('强降水');
+      else if (x.rain >= 10) tags.push('中等降水');
+      if (x.wind >= 30) tags.push('大风');
+      if (x.type === '雷暴' || x.type === '强雷暴+冰雹') tags.push('雷暴');
+      if (tags.length > 0) {
+        alerts.push({
+          date: x.date,
+          type: x.sourceType === 'forecast' ? 'forecast' : 'trend',
+          tags: tags.join(' / '),
+          danger: tags.some(t => t.includes('强降水') || t.includes('高温体感≥40') || t.includes('雷暴'))
+        });
+      }
+    });
+
+    // Dynamic advice text
+    let adviceText = [];
+    adviceText.push(`1. 未来${fcCount}天预报整体${summary.avgMax > 32 ? '偏高温' : '温和'}，平均最高温${summary.avgMax}℃，平均最低温${summary.avgMin}℃。`);
+    if (summary.heatDays > 0)
+      adviceText.push(`2. 有${summary.heatDays}天体感温度≥38℃，建议对高温时段安排错峰作业，增加防暑降温措施。`);
+    if (summary.maxRain >= 20)
+      adviceText.push(`3. 最强单日降雨达${summary.maxRain}mm，强降水日需提前检查园区排水、天台排水口及地下车库。`);
+    if (summary.riskDays > 0)
+      adviceText.push(`4. 共有${summary.riskDays}天存在高风/暴雨/高温风险，物流与巡检应规避高危时段。`);
+    adviceText.push(`5. 数据每${REFRESH_SEC/60}分钟自动刷新，来源 Open-Meteo 实时 API。`);
+
+    return { days, next72, summary, weatherPie, alerts, adviceText, generatedAt: new Date().toLocaleString('zh-CN') };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  Render all charts
+  // ═══════════════════════════════════════════════════════
+  const commonText = { color:'#cdeeff', fontFamily:'Microsoft YaHei' };
+  const splitLine = { lineStyle:{ color:'rgba(120,190,255,.12)' } };
+  const axisLine = { lineStyle:{ color:'rgba(120,190,255,.35)' } };
+
+  function renderAllCharts(data) {
+    const days = data.days;
+    const next72 = data.next72;
+    const summary = data.summary;
+
+    const xDates = days.map(x => x.dateShort);
+    const maxT = days.map(x => x.max);
+    const minT = days.map(x => x.min);
+    const feelMax = days.map(x => x.feelMax);
+    const rain = days.map(x => x.rain);
+    const wind = days.map(x => x.wind);
+    const uv = days.map(x => x.uv);
+    const rainProb = days.map(x => x.rainProb);
+
+    const radarVals = [
+      summary.peakFeel,
+      summary.maxRain,
+      Math.max(...rainProb),
+      summary.peakWind,
+      summary.peakUV,
+      +(summary.avgMax - summary.avgMin).toFixed(1)
+    ];
+
+    const hmData = [];
+    days.forEach((d, i) => {
+      hmData.push([i, 0, d.max]);
+      hmData.push([i, 1, d.min]);
+      hmData.push([i, 2, d.rainProb]);
+      hmData.push([i, 3, d.wind]);
+    });
+
+    // ── 趋势图 ──
+    if (charts.trendChart) charts.trendChart.dispose();
+    const tc = echarts.init(document.getElementById('trendChart'));
+    charts.trendChart = tc;
+    tc.setOption({
+      grid:{left:55,right:55,top:50,bottom:40},
+      legend:{top:10,textStyle:commonText,data:['最高温','最低温','体感峰值','降水量']},
+      tooltip:{trigger:'axis',backgroundColor:'rgba(3,16,34,.92)',borderColor:'rgba(70,209,255,.35)',textStyle:commonText},
+      xAxis:[{type:'category',data:xDates,axisLabel:{color:'#97dfff',rotate:30,interval:1},axisLine:axisLine,axisTick:{show:false}}],
+      yAxis:[
+        {type:'value',name:'温度℃',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:splitLine,axisLine:axisLine},
+        {type:'value',name:'降水mm',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:{show:false},axisLine:axisLine}
+      ],
+      series:[
+        {name:'最高温',type:'line',smooth:true,symbol:'circle',symbolSize:8,data:maxT,
+         lineStyle:{width:3,color:'#ff8f3d'},itemStyle:{color:'#ff8f3d'},
+         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(255,143,61,.28)'},{offset:1,color:'rgba(255,143,61,0)'}])},
+         markLine:{symbol:['none','none'],label:{color:'#ffd9b8'},lineStyle:{type:'dashed',color:'rgba(255,173,111,.6)'},data:[{yAxis:summary.avgMax,name:'均值高温'}]}},
+        {name:'最低温',type:'line',smooth:true,symbol:'diamond',symbolSize:7,data:minT,lineStyle:{width:2,color:'#39e0ff'},itemStyle:{color:'#39e0ff'}},
+        {name:'体感峰值',type:'line',smooth:true,symbol:'none',data:feelMax,lineStyle:{width:2,type:'dashed',color:'#ffe16b'},itemStyle:{color:'#ffe16b'}},
+        {name:'降水量',type:'bar',yAxisIndex:1,barWidth:10,data:rain,
+         itemStyle:{borderRadius:[6,6,0,0],color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#1de2ff'},{offset:1,color:'rgba(29,226,255,.15)'}])}},
+        // Shade historical region
+        {type:'custom',renderItem:function(p,a){
+          var idx=a.value(0); if(idx>=PAST_DAYS)return;
+          var x=a.coord([idx,0])[0]; var h=p.coordSys.height;
+          return {type:'rect',shape:{x:x-12,y:p.coordSys.y,width:24,height:h},style:{fill:'rgba(100,200,255,.06)'}};
+        },data:days.map(function(d,i){return[i,0];}),silent:true,z:0}
+      ]
+    });
+
+    // ── 72h 图 ─
+    if (charts.hourlyChart) charts.hourlyChart.dispose();
+    const hc = echarts.init(document.getElementById('hourlyChart'));
+    charts.hourlyChart = hc;
+    hc.setOption({
+      grid:{left:46,right:46,top:50,bottom:48},
+      legend:{top:10,textStyle:commonText,data:['气温','湿度','降雨概率']},
+      tooltip:{trigger:'axis',backgroundColor:'rgba(3,16,34,.92)',borderColor:'rgba(70,209,255,.35)',textStyle:commonText},
+      xAxis:{type:'category',data:next72.map(function(x){return x.time;}),axisLabel:{color:'#8ad6ff',interval:11,rotate:35},axisLine:axisLine,axisTick:{show:false}},
+      yAxis:[
+        {type:'value',name:'℃',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:splitLine,axisLine:axisLine},
+        {type:'value',name:'%',nameTextStyle:commonText,axisLabel:{color:'#97dfff'},splitLine:{show:false},axisLine:axisLine,max:100}
+      ],
+      series:[
+        {name:'气温',type:'line',smooth:true,data:next72.map(function(x){return x.temp;}),
+         lineStyle:{color:'#35e2ff',width:2.8},itemStyle:{color:'#35e2ff'},
+         areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(53,226,255,.28)'},{offset:1,color:'rgba(53,226,255,0)'}])}},
+        {name:'湿度',type:'line',smooth:true,yAxisIndex:1,data:next72.map(function(x){return x.humid;}),lineStyle:{color:'#7eff9f',width:2},itemStyle:{color:'#7eff9f'}},
+        {name:'降雨概率',type:'bar',yAxisIndex:1,barWidth:6,data:next72.map(function(x){return x.rainProb;}),itemStyle:{color:'rgba(255,196,77,.58)',borderRadius:[4,4,0,0]}}
+      ]
+    });
+
+    // ── 饼图 ──
+    if (charts.pieChart) charts.pieChart.dispose();
+    const pc = echarts.init(document.getElementById('pieChart'));
+    charts.pieChart = pc;
+    pc.setOption({
+      title:{text:'天气类型构成',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
+      tooltip:{trigger:'item'},
+      legend:{bottom:6,textStyle:{color:'#9cdfff',fontSize:11}},
+      series:[{type:'pie',radius:['36%','68%'],center:['50%','54%'],roseType:'radius',label:{color:'#dff8ff',fontSize:11},
+              itemStyle:{borderColor:'#031428',borderWidth:2},data:data.weatherPie}]
+    });
+
+    // ── 雷达图 ──
+    if (charts.radarChart) charts.radarChart.dispose();
+    const rc = echarts.init(document.getElementById('radarChart'));
+    charts.radarChart = rc;
+    rc.setOption({
+      title:{text:'未来30天风险雷达',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
+      radar:{center:['50%','56%'],radius:'62%',splitNumber:4,axisName:{color:'#a5e8ff',fontSize:11},
+             splitArea:{areaStyle:{color:['rgba(0,0,0,0)','rgba(29,132,255,.05)']}},
+             splitLine:{lineStyle:{color:'rgba(122,189,255,.24)'}},
+             axisLine:{lineStyle:{color:'rgba(122,189,255,.24)'}},
+             indicator:[
+               {name:'高温体感',max:50},{name:'降雨强度',max:80},{name:'降雨概率',max:100},
+               {name:'阵风',max:40},{name:'UV',max:14},{name:'温差',max:16}
+             ]},
+      series:[{type:'radar',data:[{value:radarVals,name:'风险轮廓',areaStyle:{color:'rgba(58,224,255,.24)'},lineStyle:{color:'#3ae0ff'},itemStyle:{color:'#3ae0ff'}}]}]
+    });
+
+    // ── 热力矩阵 ──
+    if (charts.heatmapChart) charts.heatmapChart.dispose();
+    const mc = echarts.init(document.getElementById('heatmapChart'));
+    charts.heatmapChart = mc;
+    mc.setOption({
+      title:{text:'30天气象指标热力矩阵',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
+      grid:{left:52,right:16,top:44,bottom:28},
+      xAxis:{type:'category',data:xDates,axisLabel:{color:'#94dfff',interval:4,rotate:30},axisLine:axisLine,axisTick:{show:false}},
+      yAxis:{type:'category',data:['最高温','最低温','降雨概率','风速'],axisLabel:{color:'#94dfff',fontSize:11},axisLine:axisLine,axisTick:{show:false}},
+      visualMap:{min:0,max:100,show:false,inRange:{color:['#0b2a4d','#164e88','#18a6d9','#40ffd8','#ffe866','#ff8b4a']}},
+      series:[{type:'heatmap',data:hmData,label:{show:false},emphasis:{itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,.5)'}}}]
+    });
+
+    // ── 风速/UV/气压 ──
+    if (charts.comboChart) charts.comboChart.dispose();
+    const cc = echarts.init(document.getElementById('comboChart'));
+    charts.comboChart = cc;
+    cc.setOption({
+      title:{text:'风速 / UV / 气压联动',left:'center',top:10,textStyle:{color:'#ccefff',fontSize:14}},
+      grid:{left:42,right:42,top:46,bottom:28},
+      legend:{top:24,right:8,textStyle:{color:'#bfefff',fontSize:10},data:['风速','UV','气压趋势']},
+      tooltip:{trigger:'axis'},
+      xAxis:{type:'category',data:xDates,axisLabel:{color:'#95deff',interval:4,rotate:30},axisLine:axisLine},
+      yAxis:[{type:'value',axisLabel:{color:'#95deff'},splitLine:splitLine},{type:'value',axisLabel:{color:'#95deff'},splitLine:{show:false}}],
+      series:[
+        {name:'风速',type:'bar',data:wind,barWidth:8,itemStyle:{color:'rgba(111,182,255,.55)',borderRadius:[4,4,0,0]}},
+        {name:'UV',type:'line',data:uv,smooth:true,lineStyle:{color:'#ffe069',width:2},itemStyle:{color:'#ffe069'}},
+        {name:'气压趋势',type:'line',yAxisIndex:1,smooth:true,data:next72.slice(0,30).map(function(x){return x.pressure.toFixed(0);}),lineStyle:{color:'#7effca',width:2,type:'dashed'},itemStyle:{color:'#7effca'}}
+      ]
+    });
+
+    // ── 决策建议雷达 ──
+    if (charts.adviceChart) charts.adviceChart.dispose();
+    const ac = echarts.init(document.getElementById('adviceChart'));
+    charts.adviceChart = ac;
+    const adviceScores = [
+      Math.min(100, Math.round(summary.heatDays * 8 + 20)),
+      Math.min(100, Math.round(summary.riskDays * 6 + 25)),
+      Math.min(100, Math.round(summary.rainProb > 60 ? 75 : 50)),
+      Math.min(100, Math.round(summary.riskDays * 7 + 30)),
+      Math.min(100, Math.round(summary.heatDays * 5 + 35)),
+      Math.min(100, Math.round(summary.wind > 25 ? 40 : 70))
+    ];
+    ac.setOption({
+      radar:{center:['50%','33%'],radius:'38%',splitNumber:4,axisName:{color:'#a5e8ff',fontSize:11},
+             splitLine:{lineStyle:{color:'rgba(122,189,255,.2)'}},axisLine:{lineStyle:{color:'rgba(122,189,255,.2)'}},
+             splitArea:{areaStyle:{color:['rgba(0,0,0,0)','rgba(29,132,255,.04)']}},
+             indicator:[
+               {name:'施工排班',max:100},{name:'物流调度',max:100},{name:'园区巡检',max:100},
+               {name:'防汛值守',max:100},{name:'能源负荷',max:100},{name:'户外活动',max:100}
+             ]},
+      series:[{type:'radar',data:[{value:adviceScores,
+         areaStyle:{color:'rgba(255,158,60,.20)'},lineStyle:{color:'#ff9e3c'},itemStyle:{color:'#ff9e3c'},name:'关注强度'}]}],
+      graphic:[{type:'group',left:'5%',top:'58%',children:[{type:'text',style:{
+        text: data.adviceText.join('\n'),
+        fill:'#d8f6ff',font:'12px Microsoft YaHei',lineHeight:22}}]}]
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  Update DOM elements
+  // ═══════════════════════════════════════════════════════
+  function updateDOM(data) {
+    const s = data.summary;
+    const today = data.days[PAST_DAYS]; // today is at index 14
+
+    // KPIs
+    document.getElementById('kpi-avgmax').innerHTML = s.avgMax + '<span class="kpi-unit">℃</span>';
+    document.getElementById('kpi-avgmin').innerHTML = s.avgMin + '<span class="kpi-unit">℃</span>';
+    document.getElementById('kpi-rain').innerHTML = s.totalRain + '<span class="kpi-unit">mm</span>';
+    document.getElementById('kpi-maxtemp').innerHTML = s.maxTemp + '<span class="kpi-unit">℃</span>';
+    document.getElementById('kpi-mintemp').innerHTML = s.minTemp + '<span class="kpi-unit">℃</span>';
+    document.getElementById('kpi-risk').innerHTML = s.riskDays + '<span class="kpi-unit">天</span>';
+    document.getElementById('kpi-heat').innerHTML = s.heatDays + '<span class="kpi-unit">天</span>';
+
+    // Hero
+    document.getElementById('heroCity').textContent = '广州 · 天河区 ' + today.icon;
+    document.getElementById('heroDesc').textContent = '今日天气：' + today.type + '｜适用于企业园区、工地、物流、巡检监测';
+    document.getElementById('heroTemp').textContent = s.todayMax.toFixed(1);
+    document.getElementById('heroRange').textContent = '/ ' + s.todayMin.toFixed(1) + '℃';
+    document.getElementById('heroFeel').textContent = s.todayFeel.toFixed(1);
+    document.getElementById('heroProb').textContent = s.todayRainProb;
+    document.getElementById('heroWind').textContent = s.todayWind.toFixed(1);
+    document.getElementById('heroUv').textContent = s.todayUv.toFixed(1);
+    document.getElementById('heroSunrise').textContent = s.todaySunrise;
+    document.getElementById('heroSunset').textContent = s.todaySunset;
+
+    // Conclusion
+    document.getElementById('conMaxRain').textContent = s.maxRain.toFixed(1) + ' mm';
+    document.getElementById('conMaxWind').textContent = s.peakWind.toFixed(1) + ' km/h';
+    document.getElementById('conHistDays').textContent = s.histDays + ' 天';
+    document.getElementById('conFcDays').textContent = s.fcDays + ' 天';
+
+    // Time
+    document.getElementById('dataTime').textContent = data.generatedAt;
+
+    // Flash
+    flashPanels();
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  Alerts scrolling
+  // ═══════════════════════════════════════════════════════
+  function initAlertScroll(alerts) {
+    const track = document.getElementById('alertTrack');
+    if (!track) return;
+    while (track.firstChild) track.removeChild(track.firstChild);
+
+    if (alerts.length === 0) {
+      track.innerHTML = '<div style="text-align:center;padding:40px 10px;color:#5ab4d8;font-size:13px;">当前30天无显著天气风险<br>建议持续监控</div>';
+      return;
+    }
+
+    const createItems = () => alerts.map((a, i) => {
+      const div = document.createElement('div');
+      div.className = 'alert-item' + (a.danger ? ' danger' : '');
+      div.style.animationDelay = (i * 0.07) + 's';
+      div.innerHTML = `
+        <div>
+          <div class="alert-date">${a.date} ${a.type === 'trend' ? '｜历史' : '｜预报'}</div>
+          <div class="alert-sub">重点关注现场作业、防汛排水与高温暴晒风险</div>
+        </div>
+        <div class="alert-tag">${a.tags}</div>
+      `;
+      return div;
+    });
+
+    const list1 = createItems();
+    const list2 = createItems();
+    list1.forEach(el => track.appendChild(el));
+    list2.forEach(el => track.appendChild(el));
+
+    let pos = 0;
+    const itemH = track.firstChild ? track.firstChild.offsetHeight + 10 : 70;
+    if (scrollTimer) clearInterval(scrollTimer);
+    scrollTimer = setInterval(() => {
+      pos += 0.55;
+      const total = itemH * alerts.length;
+      if (pos >= total) pos = 0;
+      track.style.transform = `translateY(${-pos}px)`;
+    }, 16);
+    track.onmouseenter = () => clearInterval(scrollTimer);
+    track.onmouseleave = () => {
+      if (scrollTimer) clearInterval(scrollTimer);
+      scrollTimer = setInterval(() => {
+        pos += 0.55;
+        const total = itemH * alerts.length;
+        if (pos >= total) pos = 0;
+        track.style.transform = `translateY(${-pos}px)`;
+      }, 16);
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  Countdown & refresh
+  // ═══════════════════════════════════════════════════════
+  function startCountdown() {
+    remaining = REFRESH_SEC;
+    const secEl = document.getElementById('cdSeconds');
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = setInterval(() => {
+      remaining--;
+      if (secEl) secEl.textContent = remaining + 's';
+      if (remaining <= 0) {
+        triggerRefresh();
+      }
+    }, 1000);
+  }
+
+  function triggerRefresh() {
+    const flash = document.getElementById('refreshFlash');
+    if (flash) { flash.classList.add('active'); setTimeout(() => flash.classList.remove('active'), 600); }
+    loadAndRender();
+  }
+
+  function flashPanels() {
+    document.querySelectorAll('.panel').forEach((p, i) => {
+      p.classList.remove('data-refresh');
+      void p.offsetWidth;
+      p.classList.add('data-refresh');
+      setTimeout(() => p.classList.remove('data-refresh'), 600 + i * 40);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  Main pipeline
+  // ══════════════════════════════════════════════════════
+  async function loadAndRender() {
+    const statusEl = document.getElementById('loadingStatus');
+    const overlay = document.getElementById('loadingOverlay');
+    try {
+      if (statusEl) statusEl.textContent = '正在获取气象数据...';
+      const raw = await fetchWeather();
+      if (statusEl) statusEl.textContent = '数据处理中...';
+      const data = processData(raw);
+      currentData = data;
+      updateDOM(data);
+      renderAllCharts(data);
+      initAlertScroll(data.alerts);
+      if (overlay) overlay.style.display = 'none';
+      startCountdown();
+      console.log('[Dashboard] 实时数据加载成功', data.generatedAt);
+    } catch (e) {
+      console.error('[Dashboard] 数据加载失败:', e);
+      if (statusEl) statusEl.textContent = '数据加载失败，将自动重试...';
+      if (overlay) overlay.style.display = 'none';
+      setTimeout(() => loadAndRender(), 10000);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  //  Init
+  // ═══════════════════════════════════════════════════════
+  window.addEventListener('DOMContentLoaded', () => {
+    loadAndRender();
+    window.addEventListener('resize', () => {
+      Object.values(charts).forEach(c => { if (c) c.resize(); });
+    });
   });
 })();
 </script>
